@@ -15,9 +15,14 @@
 
  Notes:
 
- an_to   : center the image around this point, if a third/forth value is given, then also crop image with a rectangle around he point using given radius
+ pan_to   : center the image around this point, if a third/forth value is given, then also crop image with a rectangle around he point using given radius
+ 
  zoom     : self-explanatory
+ 
  show_axes: to display the axes on the image 
+ 
  cmap     : can use different cmap
+ 
  with_cmap: to display colorbar
+ 
 
