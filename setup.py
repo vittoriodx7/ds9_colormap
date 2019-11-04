@@ -8,8 +8,8 @@ setup(
       author='Vittorio Ghirardini',
       author_email='vittorio@mpe.mpg.de',
       url="https://github.com/vittoriodx7/ds9_colormap",
-      packages=['ds9_colorbar'],
+      packages=['ds9_colormap'],
       install_requires=[
-            'astropy','matplotlib','os','numpy'
+            'astropy','matplotlib','numpy'
       ],
 )
