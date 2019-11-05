@@ -246,7 +246,7 @@ class ds9_colormap:
             ax.axis('off')
             
         if savefig is not None:
-            fig.savefig(savefig)
+            fig.savefig(savefig,facecolor=fig.get_facecolor(), edgecolor='none')
         else:
             plt.show()
         
