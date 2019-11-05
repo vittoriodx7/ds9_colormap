@@ -238,7 +238,8 @@ class ds9_colormap:
             f.close()
 
 
-
+        ax.set_facecolor('xkcd:black')
+        
         if show_axes != True:
             ax.axis('off')
             
