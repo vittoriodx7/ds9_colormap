@@ -65,7 +65,7 @@ class ds9_colormap:
         plt.show()           
 
         
-    def show(self, image=None, vmin=None, vmax=None, log=True, cmap=None, with_cmap=False, dpi=100, file_reg=None, pan_to=None, zoom=None, show_axes=False):
+    def show(self, image=None, vmin=None, vmax=None, log=True, cmap=None, with_cmap=False, dpi=100, file_reg=None, pan_to=None, zoom=None, show_axes=False, figsize=None, savefig=None):
         if image is None:
             image='example.fits'
         if cmap is None:
@@ -108,8 +108,10 @@ class ds9_colormap:
 
 
 
+        if figsize is None:
+            figsize=(nx/dpi,ny/dpi)
 
-        fig=plt.figure(figsize=(nx/dpi,ny/dpi),tight_layout=True)
+        fig=plt.figure(figsize=figsize,tight_layout=True)
         if with_cmap == True:
             ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
         else:
@@ -239,5 +241,8 @@ class ds9_colormap:
 
         if show_axes != True:
             ax.axis('off')
-
-        plt.show()
+            
+        if savefig is not None:
+            fig.savefig(savefig)
+        else:
+            plt.show()
