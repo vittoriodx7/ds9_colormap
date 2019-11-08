@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
       name='ds9_colormap',    # This is the name of your PyPI-package.
-      version='1.0',
+      version='1.01',
       description='Python package to bypass ds9',
       author='Vittorio Ghirardini,
       author_email='vittorio@mpe.mpg.de',
