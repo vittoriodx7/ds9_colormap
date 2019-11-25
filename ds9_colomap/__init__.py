@@ -2,12 +2,104 @@ from matplotlib.cm import register_cmap
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-
+from scipy.ndimage import gaussian_filter
 from astropy.io import fits as pyfits
 from matplotlib.colors import LogNorm
 from astropy import wcs
 from matplotlib import patches
 
+def draw_reg(ax,file_reg,pixsize):
+    f = open(file_reg, 'r')
+
+    start = False
+    line = f.readline()
+    while line:
+        if start == True:
+            if 'color' in line:
+                cds9 = line.split('color=')[1].split()[0]
+                if cds9 == 'white':
+                    cc = 'w'
+                elif cds9 == 'green':
+                    cc = 'lime'
+                elif cds9 == 'cyan':
+                    cc = 'cyan'
+                elif cds9 == 'black':
+                    cc = 'k'
+                elif cds9 == 'magenta':
+                    cc = 'magenta'
+                elif cds9 == 'blue':
+                    cc = 'b'
+                elif cds9 == 'yellow':
+                    cc = 'yellow'
+                elif cds9 == 'red':
+                    cc = 'r'
+                else:
+                    cc = 'lime'
+            else:
+                cc = 'lime'
+            if 'width' in line:
+                ww = float(line.split('width=')[1].split()[0])
+            else:
+                ww = 1
+            temp = line.split('(')
+            tipo = temp[0]
+            temp = temp[1].split(',')
+            xx, yy = float(temp[0]), float(temp[1])
+            if f_format == 'fk5':
+                pixim = w.all_world2pix([[xx, yy]], 0)
+                xx, yy = pixim[0][0], pixim[0][1]
+            else:
+                xx, yy = xx - 1, yy - 1
+
+            if tipo == 'circle':
+                temp2 = temp[2].split(')')[0]
+                if f_format == 'fk5':
+                    if '\"' in temp2:
+                        rr = float(temp2.split('\"')[0]) / pixsize
+                    elif '\'' in temp2:
+                        rr = float(temp2.split('\'')[0]) * 60 / pixsize
+                    else:
+                        rr = float(temp2) * 3600 / pixsize
+                else:
+                    rr = float(temp2)
+                circle = plt.Circle((xx, yy), rr, color=cc, fill=False, clip_on=True, lw=ww)
+                ax.add_artist(circle)
+
+            elif tipo == 'ellipse':
+                tt = float(temp[4].split(')')[0])
+                if f_format == 'fk5':
+                    temp2 = temp[2]
+                    if '\"' in temp2:
+                        rx = float(temp2.split('\"')[0]) / pixsize
+                    elif '\'' in temp2:
+                        rx = float(temp2.split('\'')[0]) * 60 / pixsize
+                    else:
+                        rx = float(temp2) * 3600 / pixsize
+                    temp3 = temp[3]
+                    if '\"' in temp3:
+                        ry = float(temp3.split('\"')[0]) / pixsize
+                    elif '\'' in temp3:
+                        ry = float(temp3.split('\'')[0]) * 60 / pixsize
+                    else:
+                        ry = float(temp3) * 3600 / pixsize
+                else:
+                    rx = float(temp[2])
+                    ry = float(temp[3])
+                ellipse = patches.Ellipse((xx, yy), rx, ry, color=cc, angle=tt, linewidth=ww, fill=False)
+                ax.add_artist(ellipse)
+            else:
+                print("ERROR: %s not yet supported, try using circle or ellipse" % tipo)
+
+        if 'fk5' in line:
+            start = True
+            f_format = 'fk5'
+        if 'image' in line:
+            start = True
+            f_format = 'image'
+
+        line = f.readline()
+
+    f.close()
 
 class ds9_colormap:
     def __init__(self, CIAO='', ds9_cmap=''):
@@ -64,7 +156,7 @@ class ds9_colormap:
         plt.show()
 
     def show(self, image=None, vmin=None, vmax=None, log=True, cmap=None, with_cmap=False, dpi=100, file_reg=None,
-             pan_to=None, zoom=None, show_axes=False, figsize=None, savefig=None, fcolor=None):
+             pan_to=None, zoom=None, show_axes=False, figsize=None, savefig=None, fcolor=None, smooth=None):
         if image is None:
             image = 'example.fits'
         if cmap is None:
@@ -73,6 +165,8 @@ class ds9_colormap:
 
         hdulist = pyfits.open(image)
         data = hdulist[0].data
+        if smooth is not None:
+            data=gaussian_filter(data,smooth)
         ny, nx = data.shape
         w = wcs.WCS(hdulist[0].header, relax=False)
 
@@ -130,97 +224,8 @@ class ds9_colormap:
             fig.colorbar(im, cax=cax)
 
         if file_reg is not None:
-            f = open(file_reg, 'r')
-
-            start = False
-            line = f.readline()
-            while line:
-                if start == True:
-                    if 'color' in line:
-                        cds9 = line.split('color=')[1].split()[0]
-                        if cds9 == 'white':
-                            cc = 'w'
-                        elif cds9 == 'green':
-                            cc = 'lime'
-                        elif cds9 == 'cyan':
-                            cc = 'cyan'
-                        elif cds9 == 'black':
-                            cc = 'k'
-                        elif cds9 == 'magenta':
-                            cc = 'magenta'
-                        elif cds9 == 'blue':
-                            cc = 'b'
-                        elif cds9 == 'yellow':
-                            cc = 'yellow'
-                        elif cds9 == 'red':
-                            cc = 'r'
-                        else:
-                            cc = 'lime'
-                    else:
-                        cc = 'lime'
-                    if 'width' in line:
-                        ww = float(line.split('width=')[1].split()[0])
-                    else:
-                        ww = 1
-                    temp = line.split('(')
-                    tipo = temp[0]
-                    temp = temp[1].split(',')
-                    xx, yy = float(temp[0]), float(temp[1])
-                    if f_format == 'fk5':
-                        pixim = w.all_world2pix([[xx, yy]], 0)
-                        xx, yy = pixim[0][0], pixim[0][1]
-                    else:
-                        xx, yy = xx - 1, yy - 1
-
-                    if tipo == 'circle':
-                        temp2 = temp[2].split(')')[0]
-                        if f_format == 'fk5':
-                            if '\"' in temp2:
-                                rr = float(temp2.split('\"')[0]) / pixsize
-                            elif '\'' in temp2:
-                                rr = float(temp2.split('\'')[0]) * 60 / pixsize
-                            else:
-                                rr = float(temp2) * 3600 / pixsize
-                        else:
-                            rr = float(temp2)
-                        circle = plt.Circle((xx, yy), rr, color=cc, fill=False, clip_on=True, lw=ww)
-                        ax.add_artist(circle)
-
-                    elif tipo == 'ellipse':
-                        tt = float(temp[4].split(')')[0])
-                        if f_format == 'fk5':
-                            temp2 = temp[2]
-                            if '\"' in temp2:
-                                rx = float(temp2.split('\"')[0]) / pixsize
-                            elif '\'' in temp2:
-                                rx = float(temp2.split('\'')[0]) * 60 / pixsize
-                            else:
-                                rx = float(temp2) * 3600 / pixsize
-                            temp3 = temp[3]
-                            if '\"' in temp3:
-                                ry = float(temp3.split('\"')[0]) / pixsize
-                            elif '\'' in temp3:
-                                ry = float(temp3.split('\'')[0]) * 60 / pixsize
-                            else:
-                                ry = float(temp3) * 3600 / pixsize
-                        else:
-                            rx = float(temp[2])
-                            ry = float(temp[3])
-                        ellipse = patches.Ellipse((xx, yy), rx, ry, color=cc, angle=tt, linewidth=ww, fill=False)
-                        ax.add_artist(ellipse)
-                    else:
-                        print("ERROR: %s not yet supported, try using circle or ellipse" % tipo)
-
-                if 'fk5' in line:
-                    start = True
-                    f_format = 'fk5'
-                if 'image' in line:
-                    start = True
-                    f_format = 'image'
-
-                line = f.readline()
-
-            f.close()
+            for i in range(len(file_reg)):
+                draw_reg(ax, file_reg[i], pixsize)
 
         if fcolor is not None:
             fig.set_facecolor(fcolor)
